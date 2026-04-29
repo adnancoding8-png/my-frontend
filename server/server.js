@@ -47,11 +47,12 @@ app.use(
       "http://127.0.0.1:5176",
       // Production origins
       "https://server-e-commerce-app-env.up.railway.app",
+      "https://mycommerce01.netlify.app",
       "https://69f1df132c1b0044693ed321--incomparable-faun-bc8bf3.netlify.app",
       // Allow all Netlify preview deployments
       /^https:\/\/.*\.netlify\.app$/
     ],
-    methods: ["GET", "POST", "DELETE", "PUT"],
+    methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
       "Authorization",

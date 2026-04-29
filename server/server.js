@@ -36,6 +36,7 @@ const PORT = process.env.PORT || 5001;
 app.use(
   cors({
     origin: [
+      // Development origins
       "http://localhost:5173",
       "http://localhost:5174",
       "http://localhost:5175",
@@ -43,7 +44,12 @@ app.use(
       "http://127.0.0.1:5173",
       "http://127.0.0.1:5174",
       "http://127.0.0.1:5175",
-      "http://127.0.0.1:5176"
+      "http://127.0.0.1:5176",
+      // Production origins
+      "https://server-e-commerce-app-env.up.railway.app",
+      "https://69f1df132c1b0044693ed321--incomparable-faun-bc8bf3.netlify.app",
+      // Allow all Netlify preview deployments
+      /^https:\/\/.*\.netlify\.app$/
     ],
     methods: ["GET", "POST", "DELETE", "PUT"],
     allowedHeaders: [
@@ -59,6 +65,15 @@ app.use(
 
 app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
+
+// Health check route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'E-commerce API Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // API routes
 app.use("/api/auth", authRouter);

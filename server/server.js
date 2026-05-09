@@ -28,7 +28,8 @@ const shopWishlistRouter = require("./routes/shop/wishlist-routes");
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+// Parse PORT as integer and handle Railway's auto-assigned port
+const PORT = parseInt(process.env.PORT, 10) || 5001;
 
 // MongoDB connection is now handled by the database config
 
@@ -173,14 +174,33 @@ const isPortAvailable = (port) => {
 
 // Find first available port
 async function findAvailablePort(startPort) {
-  let port = startPort;
-  while (!(await isPortAvailable(port))) {
-    port++;
-    if (port - startPort > 10) {
-      throw new Error('No available ports found');
-    }
+  // Ensure startPort is a valid number
+  const port = parseInt(startPort, 10);
+  
+  if (isNaN(port) || port < 0 || port > 65535) {
+    console.error('Invalid port number:', startPort);
+    return 5001; // Default fallback
   }
-  return port;
+  
+  // In production (Railway), use the assigned port directly
+  if (process.env.NODE_ENV === 'production') {
+    return port;
+  }
+  
+  // In development, find available port
+  let currentPort = port;
+  let attempts = 0;
+  const maxAttempts = 10;
+  
+  while (attempts < maxAttempts) {
+    if (await isPortAvailable(currentPort)) {
+      return currentPort;
+    }
+    currentPort++;
+    attempts++;
+  }
+  
+  throw new Error('No available ports found');
 }
 
 // Graceful shutdown handler

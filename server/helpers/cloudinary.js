@@ -74,6 +74,42 @@ async function imageUploadUtil(file) {
   }
 }
 
+/**
+ * Verify if a Cloudinary image exists
+ * @param {string} publicId - Cloudinary public_id
+ * @returns {Promise<boolean>}
+ */
+async function verifyImageExists(publicId) {
+  try {
+    const result = await cloudinary.api.resource(publicId, {
+      resource_type: 'image'
+    });
+    return result && result.secure_url;
+  } catch (error) {
+    if (error.http_code === 404) {
+      console.warn(`Image not found in Cloudinary: ${publicId}`);
+      return false;
+    }
+    console.error('Error verifying image:', error);
+    return false;
+  }
+}
+
+/**
+ * Delete image from Cloudinary
+ * @param {string} publicId - Cloudinary public_id
+ * @returns {Promise<boolean>}
+ */
+async function deleteImage(publicId) {
+  try {
+    const result = await cloudinary.uploader.destroy(publicId);
+    return result.result === 'ok';
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    return false;
+  }
+}
+
 // Configure multer with limits
 const upload = multer({
   storage,
@@ -90,4 +126,4 @@ const upload = multer({
   }
 });
 
-module.exports = { upload, imageUploadUtil };
+module.exports = { upload, imageUploadUtil, verifyImageExists, deleteImage };

@@ -6,6 +6,7 @@ const User = require("../../models/User");
 const registerUser = async (req, res) => {
   const { userName, email, password } = req.body;
 
+  // Enhanced validation
   if (!userName || !email || !password) {
     return res.status(400).json({
       success: false,
@@ -13,32 +14,101 @@ const registerUser = async (req, res) => {
     });
   }
 
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid email format",
+    });
+  }
+
+  // Password strength validation
+  if (password.length < 6) {
+    return res.status(400).json({
+      success: false,
+      message: "Password must be at least 6 characters long",
+    });
+  }
+
   try {
+    // Check database connection
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      console.error('❌ Database not connected. ReadyState:', mongoose.connection.readyState);
+      return res.status(503).json({
+        success: false,
+        message: "Database connection unavailable. Please try again later.",
+        debug: process.env.NODE_ENV === 'development' ? {
+          readyState: mongoose.connection.readyState,
+          states: { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' }
+        } : undefined
+      });
+    }
+
+    console.log('✅ Database connected. Checking for existing user...');
+    
     const checkUser = await User.findOne({ email });
-    if (checkUser)
+    if (checkUser) {
+      console.log('⚠️ User already exists:', email);
       return res.status(409).json({
         success: false,
         message: "User already exists with this email",
       });
+    }
 
+    console.log('✅ Email available. Hashing password...');
     const hashPassword = await bcrypt.hash(password, 12);
+    
+    console.log('✅ Password hashed. Creating user...');
     const newUser = new User({
       userName,
       email,
       password: hashPassword,
     });
 
+    console.log('✅ Saving user to database...');
     await newUser.save();
     
+    console.log('✅ User registered successfully:', email);
     res.status(201).json({
       success: true,
       message: "Registration successful! Please login to continue.",
     });
   } catch (e) {
-    console.error("Registration error:", e);
+    console.error("❌ Registration error:", {
+      message: e.message,
+      code: e.code,
+      name: e.name,
+      stack: process.env.NODE_ENV === 'development' ? e.stack : undefined
+    });
+    
+    // Handle specific MongoDB errors
+    if (e.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Username or email already exists",
+      });
+    }
+    
+    if (e.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: "Validation error: " + e.message,
+      });
+    }
+    
+    if (e.name === 'MongoNetworkError' || e.name === 'MongoTimeoutError') {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection error. Please try again later.",
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: "An error occurred during registration",
+      error: process.env.NODE_ENV === 'development' ? e.message : undefined
     });
   }
 };

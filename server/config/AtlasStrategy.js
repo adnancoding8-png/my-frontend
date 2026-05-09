@@ -7,6 +7,16 @@ const ConnectionStrategy = require('./ConnectionStrategy');
  */
 class AtlasStrategy extends ConnectionStrategy {
   /**
+   * @param {string} [mongoUri] - MongoDB URI passed explicitly at registration time.
+   *   Storing it on the instance ensures isAvailable() can find it even in
+   *   containerised environments where process.env reads may be unreliable.
+   */
+  constructor(mongoUri) {
+    super();
+    this._mongoUri = mongoUri || null;
+  }
+
+  /**
    * Get the priority of this strategy (Atlas has high priority)
    * @returns {number} Priority value (higher = more preferred)
    */
@@ -15,12 +25,23 @@ class AtlasStrategy extends ConnectionStrategy {
   }
 
   /**
-   * Check if Atlas strategy is available
-   * @returns {Promise<boolean>} True if Atlas URI is configured
+   * Check if Atlas strategy is available.
+   * Prefers the URI stored at construction time so that the check is not
+   * sensitive to the timing of process.env population in containerised
+   * environments (e.g. Railway).  Falls back to process.env.MONGO_URI for
+   * backwards-compatibility when the strategy is constructed without an
+   * explicit URI.
+   * @returns {Promise<boolean>} True if an Atlas URI is configured
    */
   async isAvailable() {
-    const mongoUri = process.env.MONGO_URI;
-    return !!(mongoUri && (mongoUri.includes('mongodb+srv://') || mongoUri.includes('mongodb.net')));
+    const mongoUri = this._mongoUri || process.env.MONGO_URI;
+    if (!mongoUri) return false;
+    // Accept both SRV format (mongodb+srv://) and direct Atlas URIs that
+    // contain the mongodb.net domain, as well as plain mongodb:// URIs that
+    // carry Atlas credentials (direct connection string format used on Railway).
+    return mongoUri.includes('mongodb+srv://') ||
+           mongoUri.includes('mongodb.net') ||
+           mongoUri.startsWith('mongodb://');
   }
 
   /**
@@ -29,14 +50,16 @@ class AtlasStrategy extends ConnectionStrategy {
    * @returns {Promise<boolean>} True if configuration is valid
    */
   async validate(config) {
-    const mongoUri = config.mongoUri || process.env.MONGO_URI;
+    const mongoUri = config.mongoUri || this._mongoUri || process.env.MONGO_URI;
     
     if (!mongoUri) {
       return false;
     }
 
-    // Basic Atlas URI validation
-    const isAtlasUri = mongoUri.includes('mongodb+srv://') || mongoUri.includes('mongodb.net');
+    // Basic Atlas URI validation — accept SRV, direct Atlas, and plain mongodb:// URIs
+    const isAtlasUri = mongoUri.includes('mongodb+srv://') ||
+                       mongoUri.includes('mongodb.net') ||
+                       mongoUri.startsWith('mongodb://');
     const hasCredentials = mongoUri.includes('@');
     
     return isAtlasUri && hasCredentials;
@@ -48,7 +71,7 @@ class AtlasStrategy extends ConnectionStrategy {
    * @returns {string} Atlas connection string
    */
   getConnectionString(config) {
-    return config.mongoUri || process.env.MONGO_URI;
+    return config.mongoUri || this._mongoUri || process.env.MONGO_URI;
   }
 
   /**

@@ -10,8 +10,10 @@ const databaseManager = new DatabaseManager({
   healthCheckInterval: 30000
 });
 
-// Register connection strategies
-databaseManager.registerStrategy(new AtlasStrategy());
+// Register connection strategies.
+// Pass MONGO_URI explicitly so AtlasStrategy.isAvailable() can find it
+// regardless of when/how process.env is populated in the Railway container.
+databaseManager.registerStrategy(new AtlasStrategy(process.env.MONGO_URI));
 
 // Set up event listeners for database events
 databaseManager.on('connecting', () => {

@@ -3,8 +3,14 @@ const mongoose = require("mongoose");
 const ProductSchema = new mongoose.Schema(
   {
     images: [{
-      url: String,
-      public_id: String
+      url: {
+        type: String,
+        required: [true, 'Image URL is required']
+      },
+      public_id: {
+        type: String,
+        required: [true, 'Image public_id is required']
+      }
     }],
     title: String,
     description: String,
@@ -80,6 +86,15 @@ const categoryToDepartmentMapping = {
 
 // Pre-save middleware to handle legacy data transformation
 ProductSchema.pre('save', function(next) {
+  // Validate images have both url and public_id
+  if (this.images && this.images.length > 0) {
+    for (const image of this.images) {
+      if (!image.url || !image.public_id) {
+        return next(new Error('Each image must have both url and public_id'));
+      }
+    }
+  }
+  
   // If department is not set but category is available, map it
   if (!this.department && this.category) {
     this.department = categoryToDepartmentMapping[this.category.toLowerCase()] || 'lifestyle';

@@ -76,6 +76,60 @@ app.get('/', (req, res) => {
   });
 });
 
+// Database health check route
+app.get('/api/health/db', async (req, res) => {
+  const mongoose = require('mongoose');
+  
+  const dbState = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  };
+  
+  const readyState = mongoose.connection.readyState;
+  const isConnected = readyState === 1;
+  
+  if (isConnected) {
+    try {
+      // Try to perform a simple operation
+      await mongoose.connection.db.admin().ping();
+      
+      res.status(200).json({
+        success: true,
+        database: {
+          status: dbState[readyState],
+          connected: true,
+          host: mongoose.connection.host,
+          name: mongoose.connection.name,
+          models: Object.keys(mongoose.connection.models)
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(503).json({
+        success: false,
+        database: {
+          status: dbState[readyState],
+          connected: false,
+          error: error.message
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+  } else {
+    res.status(503).json({
+      success: false,
+      database: {
+        status: dbState[readyState],
+        connected: false,
+        message: 'Database not connected'
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // API routes
 app.use("/api/auth", authRouter);
 app.use("/api/admin/products", adminProductsRouter);

@@ -3,6 +3,12 @@
  * Defines the interface that all connection strategies must implement
  */
 class ConnectionStrategy {
+  /**
+   * Base constructor.  Subclasses may override this to accept configuration
+   * parameters (e.g. a connection URI) that should be captured at
+   * registration time rather than read from process.env on every call.
+   * Subclass constructors must call super() before accessing `this`.
+   */
   constructor() {
     if (this.constructor === ConnectionStrategy) {
       throw new Error('ConnectionStrategy is an abstract class and cannot be instantiated directly');

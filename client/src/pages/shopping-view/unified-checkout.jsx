@@ -73,22 +73,56 @@ function UnifiedCheckout() {
     }
   }, [selectedProduct, cartItemsList, navigate, toast]);
 
+  /**
+   * Helper function to get image URL from various data formats
+   * Handles both string arrays ["url1", "url2"] and object arrays [{url: "..."}, ...]
+   * 
+   * @param {Array} images - Array of image URLs or image objects
+   * @param {number} index - Index of image to retrieve (default: 0)
+   * @returns {string} Image URL or fallback path
+   */
+  const getImageUrl = (images, index = 0) => {
+    // Check if images array exists and has items
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      return '/no-image.png';
+    }
+
+    // Get the image at the specified index
+    const imageAtIndex = images[index];
+    
+    // Handle undefined/null at index
+    if (!imageAtIndex) {
+      return '/no-image.png';
+    }
+
+    // Handle string array format: ["url1", "url2"]
+    if (typeof imageAtIndex === 'string') {
+      return imageAtIndex;
+    }
+
+    // Handle object array format: [{url: "..."}, ...]
+    if (typeof imageAtIndex === 'object' && imageAtIndex.url) {
+      return imageAtIndex.url;
+    }
+
+    // Fallback if format is unexpected
+    return '/no-image.png';
+  };
+
   const checkoutItems = selectedProduct 
     ? [{
         productId: selectedProduct._id,
         title: selectedProduct.title,
         price: selectedProduct.salePrice || selectedProduct.price,
         quantity: 1,
-        images: selectedProduct.images || [],
-        image: selectedProduct.image || ""
+        images: selectedProduct.images || []
       }]
     : cartItemsList.map(item => ({
         productId: item.productId,
         title: item.title,
         price: item.salePrice > 0 ? item.salePrice : item.price,
         quantity: item.quantity,
-        images: item.images || (item.image ? [{url: item.image}] : []),
-        image: item.image || ""
+        images: item.images || []
       }));
 
   const totalAmount = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -354,9 +388,14 @@ function UnifiedCheckout() {
                 {checkoutItems.map((item, index) => (
                   <div key={index} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
                     <img
-                      src={item.images?.[0]?.url || item.image || "https://via.placeholder.com/80"}
+                      src={getImageUrl(item.images, 0)}
                       alt={item.title}
                       className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
+                      onError={(e) => {
+                        if (e.target.dataset.errorHandled === 'true') return;
+                        e.target.dataset.errorHandled = 'true';
+                        e.target.src = '/no-image.png';
+                      }}
                     />
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900 line-clamp-2 text-sm sm:text-base">

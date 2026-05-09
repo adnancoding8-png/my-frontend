@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
+import apiClient from "@/services/api-client";
+import { getErrorMessage } from "@/utils/error-handler";
 
 const initialState = {
   isModalOpen: false,
@@ -11,30 +11,20 @@ const initialState = {
   orderConfirmation: null,
 };
 
-// Configure axios defaults
-const getConfig = () => ({
-  withCredentials: true,
-  headers: {
-    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-    "Pragma": "no-cache"
-  }
-});
-
 // Submit guest order
 export const submitGuestOrder = createAsyncThunk(
   "guestCheckout/submitGuestOrder",
   async (orderData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/shop/orders/guest`,
-        orderData,
-        getConfig()
+      const response = await apiClient.post(
+        "/api/shop/orders/guest",
+        orderData
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || {
-        success: false,
-        message: "Failed to submit guest order"
+      return rejectWithValue({
+        message: getErrorMessage(error),
+        error: error,
       });
     }
   }

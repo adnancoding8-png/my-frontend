@@ -15,6 +15,17 @@ import {
 } from "@/store/shop/guest-checkout-slice";
 import { showOrderConfirmation, hideOrderConfirmation } from "@/store/shop/order-confirmation-slice";
 import OrderConfirmationModal from "./order-confirmation-modal";
+import ErrorAlert from "../common/error-alert";
+
+// Helper function to get product image URL
+const getProductImage = (product) => {
+    if (product?.images?.[0]) {
+        return typeof product.images[0] === 'string' 
+            ? product.images[0]
+            : product.images[0]?.url;
+    }
+    return '/no-image.png';
+};
 
 function GuestCheckoutModal() {
     const dispatch = useDispatch();
@@ -137,7 +148,6 @@ function GuestCheckoutModal() {
                 _id: selectedProduct._id,
                 title: selectedProduct.title,
                 price: selectedProduct.salePrice || selectedProduct.price,
-                image: selectedProduct.images?.[0]?.url || selectedProduct.image,
                 images: selectedProduct.images
             },
             customer: {
@@ -224,7 +234,7 @@ Order ID: ${orderConfirmation.orderId || orderConfirmation._id}`;
                         {selectedProduct && (
                             <div className="bg-gray-50 rounded-lg p-4 flex gap-4">
                                 <img
-                                    src={selectedProduct.images?.[0]?.url || selectedProduct.image}
+                                    src={getProductImage(selectedProduct)}
                                     alt={selectedProduct.title}
                                     className="w-16 h-16 object-cover rounded-lg"
                                 />
@@ -254,9 +264,11 @@ Order ID: ${orderConfirmation.orderId || orderConfirmation._id}`;
 
                         {/* Error Display */}
                         {error && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                <p className="text-sm text-red-600">{error}</p>
-                            </div>
+                            <ErrorAlert 
+                              error={error}
+                              onDismiss={() => dispatch(clearError())}
+                              autoClose={false}
+                            />
                         )}
 
                         {/* Form */}

@@ -11,15 +11,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { sortOptions } from "@/config";
-import { fetchAllFilteredProducts } from "@/store/shop/products-slice";
+import { fetchAllFilteredProducts, clearError } from "@/store/shop/products-slice";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import EnhancedProductCard from "@/components/shopping-view/enhanced-product-card";
+import ErrorAlert from "@/components/common/error-alert";
 
 function ShoppingListing() {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   
-  const { productList, isLoading } = useSelector((state) => state.shopProducts);
+  const { productList, isLoading, error } = useSelector((state) => state.shopProducts);
   
   // Local state
   const [filters, setFilters] = useState({});
@@ -63,6 +64,18 @@ function ShoppingListing() {
     <>
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-4 md:py-6">
+          {/* Error Alert */}
+          <ErrorAlert 
+            error={error}
+            onDismiss={() => dispatch(clearError())}
+            onRetry={() => {
+              dispatch(fetchAllFilteredProducts({ 
+                filterParams: filters, 
+                sortParams: sort 
+              }));
+            }}
+          />
+
           <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
             {/* Header */}
             <div className="p-4 md:p-6 border-b">

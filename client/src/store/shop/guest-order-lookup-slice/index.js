@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
+import apiClient from "@/services/api-client";
 
 const initialState = {
   isLoading: false,
@@ -10,23 +9,13 @@ const initialState = {
   lastSearchName: "",
 };
 
-// Configure axios defaults
-const getConfig = () => ({
-  withCredentials: true,
-  headers: {
-    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-    "Pragma": "no-cache"
-  }
-});
-
 // Search for guest orders by name
 export const searchGuestOrders = createAsyncThunk(
   "guestOrderLookup/searchGuestOrders",
   async (guestName, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/shop/orders/guest/${encodeURIComponent(guestName)}`,
-        getConfig()
+      const response = await apiClient.get(
+        `/api/shop/orders/guest/${encodeURIComponent(guestName)}`
       );
       return {
         orders: response.data.data || [],

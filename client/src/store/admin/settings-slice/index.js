@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
+import apiClient from "@/services/api-client";
 
 const initialState = {
   whatsapp: {
@@ -14,23 +13,13 @@ const initialState = {
   error: null
 };
 
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  return {
-    "Content-Type": "application/json"
-  };
-};
-
 // Async thunk to fetch WhatsApp settings (admin)
 export const fetchWhatsAppSettings = createAsyncThunk(
   "settings/fetchWhatsAppSettings",
   async (_, { rejectWithValue }) => {
     try {
-      const result = await axios.get(
-        `${API_BASE_URL}/api/admin/settings/whatsapp`,
-        {
-          headers: getAuthHeaders()
-        }
+      const result = await apiClient.get(
+        "/api/admin/settings/whatsapp"
       );
       return result.data;
     } catch (error) {
@@ -45,11 +34,8 @@ export const fetchWhatsAppSettingsWithFallback = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // First try the admin endpoint
-      const result = await axios.get(
-        `${API_BASE_URL}/api/admin/settings/whatsapp`,
-        {
-          headers: getAuthHeaders()
-        }
+      const result = await apiClient.get(
+        "/api/admin/settings/whatsapp"
       );
       return result.data;
     } catch (error) {
@@ -57,8 +43,8 @@ export const fetchWhatsAppSettingsWithFallback = createAsyncThunk(
       if (error.response?.status === 401) {
         console.log('Admin endpoint requires authentication, falling back to public endpoint');
         try {
-          const publicResult = await axios.get(
-            `${API_BASE_URL}/api/admin/settings/whatsapp/public`
+          const publicResult = await apiClient.get(
+            "/api/admin/settings/whatsapp/public"
           );
           return publicResult.data;
         } catch (publicError) {
@@ -75,8 +61,8 @@ export const fetchPublicWhatsAppSettings = createAsyncThunk(
   "settings/fetchPublicWhatsAppSettings",
   async (_, { rejectWithValue }) => {
     try {
-      const result = await axios.get(
-        `${API_BASE_URL}/api/admin/settings/whatsapp/public`
+      const result = await apiClient.get(
+        "/api/admin/settings/whatsapp/public"
       );
       return result.data;
     } catch (error) {
@@ -90,12 +76,9 @@ export const updateWhatsAppSettings = createAsyncThunk(
   "settings/updateWhatsAppSettings",
   async (settingsData, { rejectWithValue }) => {
     try {
-      const result = await axios.put(
-        `${API_BASE_URL}/api/admin/settings/whatsapp`,
-        settingsData,
-        {
-          headers: getAuthHeaders()
-        }
+      const result = await apiClient.put(
+        "/api/admin/settings/whatsapp",
+        settingsData
       );
       return result.data;
     } catch (error) {

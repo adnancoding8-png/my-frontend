@@ -7,15 +7,16 @@ import { Label } from "../ui/label";
 import StarRatingComponent from "../common/star-rating";
 import EnhancedReviewDisplay from "./enhanced-review-display";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+import { addToCart, fetchCartItems, clearError as clearCartError } from "@/store/shop/cart-slice";
 import { useToast } from "../ui/use-toast";
-import { setProductDetails, fetchAllFilteredProducts } from "@/store/shop/products-slice";
+import { setProductDetails, fetchAllFilteredProducts, clearError as clearProductError } from "@/store/shop/products-slice";
 import { useEffect, useState } from "react";
-import { addReview, getReviews } from "@/store/shop/review-slice";
+import { addReview, getReviews, clearError as clearReviewError } from "@/store/shop/review-slice";
 import { useNavigate } from "react-router-dom";
 import { AuthDialog } from "../auth/auth-dialog";
 import { openGuestCheckout } from "@/store/shop/guest-checkout-slice";
 import { getSessionId } from "@/utils/session";
+import ErrorAlert from "../common/error-alert";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [reviewMsg, setReviewMsg] = useState("");
@@ -26,8 +27,8 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const { cartItems } = useSelector((state) => state.shopCart);
-  const { reviews } = useSelector((state) => state.shopReview);
+  const { cartItems, error: cartError } = useSelector((state) => state.shopCart);
+  const { reviews, error: reviewError } = useSelector((state) => state.shopReview);
   const { productList } = useSelector((state) => state.shopProducts);
   const { toast } = useToast();
 
@@ -270,6 +271,15 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
               {/* 3. Action Buttons */}
               <div className="space-y-3">
+                {/* Cart Error Alert */}
+                {cartError && (
+                  <ErrorAlert 
+                    error={cartError}
+                    onDismiss={() => dispatch(clearCartError())}
+                    autoClose={false}
+                  />
+                )}
+
                 {productDetails?.totalStock === 0 ? (
                   <Button 
                     className="w-full h-12 bg-gray-300 hover:bg-gray-300 cursor-not-allowed rounded-lg font-semibold" 
@@ -309,6 +319,15 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           {/* 5. Reviews Section */}
           <div className="px-6 pb-6 space-y-6 border-t border-gray-200 pt-6">
             <h2 className="text-2xl font-bold text-gray-900">Customer Reviews</h2>
+            
+            {/* Review Error Alert */}
+            {reviewError && (
+              <ErrorAlert 
+                error={reviewError}
+                onDismiss={() => dispatch(clearReviewError())}
+                autoClose={false}
+              />
+            )}
             
             {isAuthenticated ? (
               <div className="bg-gray-50 rounded-xl p-6 space-y-4">

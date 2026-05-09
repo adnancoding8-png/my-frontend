@@ -12,7 +12,7 @@ import GuestOrderLookup from "@/components/shopping-view/guest-order-lookup";
 import EnhancedOrderDetails from "@/components/shopping-view/enhanced-order-details";
 import OrderSuccessBanner from "@/components/shopping-view/order-success-banner";
 import OrderErrorBoundary from "@/components/common/order-error-boundary";
-import { User, Package, Search, LogIn, ShoppingCart } from "lucide-react";
+import { User, Package, Search, LogIn, ShoppingCart, LayoutDashboard } from "lucide-react";
 
 function ShoppingAccount() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -71,16 +71,34 @@ function ShoppingAccount() {
             className="h-full w-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <div className="text-center text-white">
-              <h1 className="text-4xl font-bold mb-2">
-                {isAuthenticated ? `Welcome back, ${user?.userName}!` : 'My Account'}
-              </h1>
-              <p className="text-lg">
-                {isAuthenticated 
-                  ? 'Manage your profile and orders' 
-                  : 'Find your orders or sign in to access your account'
-                }
-              </p>
+            <div className="text-center text-white px-4">
+              <div className="flex flex-col items-center gap-3">
+                <h1 className="text-3xl sm:text-4xl font-bold mb-2">
+                  {isAuthenticated ? `Welcome back, ${user?.userName}!` : 'My Account'}
+                </h1>
+                <p className="text-base sm:text-lg">
+                  {isAuthenticated 
+                    ? 'Manage your profile and orders' 
+                    : 'Find your orders or sign in to access your account'
+                  }
+                </p>
+                {/* Admin Badge and Button */}
+                {isAuthenticated && user?.role === 'admin' && (
+                  <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
+                    <Badge className="bg-yellow-500 text-black font-semibold px-4 py-1 text-sm">
+                      ⭐ Administrator Account
+                    </Badge>
+                    <Button
+                      onClick={() => window.location.href = '/admin/dashboard'}
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg flex items-center gap-2 px-6"
+                      size="sm"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span className="font-semibold">Admin Dashboard</span>
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

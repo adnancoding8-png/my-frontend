@@ -4,12 +4,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { Button } from "../ui/button";
 import { SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 import UserCartItemsContent from "./cart-items-content";
-import { fetchCartItems } from "@/store/shop/cart-slice";
+import { fetchCartItems, clearError } from "@/store/shop/cart-slice";
+import ErrorAlert from "../common/error-alert";
 
 function UserCartWrapper({ cartItems, setOpenCartSheet }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { error } = useSelector((state) => state.shopCart);
   
   const totalCartAmount =
     cartItems && cartItems.length > 0
@@ -35,6 +37,22 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
       <SheetHeader className="border-b border-brand-primary/10 pb-4">
         <SheetTitle className="text-brand-dark text-xl font-bold">Your Cart</SheetTitle>
       </SheetHeader>
+      
+      {/* Error Alert */}
+      {error && (
+        <div className="px-4 pt-4">
+          <ErrorAlert 
+            error={error}
+            onDismiss={() => dispatch(clearError())}
+            onRetry={() => {
+              if (user?.id) {
+                dispatch(fetchCartItems(user.id));
+              }
+            }}
+            autoClose={false}
+          />
+        </div>
+      )}
       
       <div className="flex-1 overflow-y-auto py-6">
         <div className="space-y-4">

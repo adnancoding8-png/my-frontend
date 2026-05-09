@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
+import apiClient from "@/services/api-client";
 
 const initialState = {
   cartItems: { items: [] },
@@ -8,23 +7,13 @@ const initialState = {
   error: null,
 };
 
-// Configure axios defaults
-const getConfig = () => ({
-  withCredentials: true,
-  headers: {
-    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-    "Pragma": "no-cache"
-  }
-});
-
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ userId, productId, quantity }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/shop/cart/add`,
-        { userId, productId, quantity },
-        getConfig()
+      const response = await apiClient.post(
+        "/api/shop/cart/add",
+        { userId, productId, quantity }
       );
       return response.data;
     } catch (error) {
@@ -40,9 +29,8 @@ export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
   async (userId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/shop/cart/get/${userId}`,
-        getConfig()
+      const response = await apiClient.get(
+        `/api/shop/cart/get/${userId}`
       );
       return response.data;
     } catch (error) {
@@ -58,9 +46,8 @@ export const deleteCartItem = createAsyncThunk(
   "cart/deleteCartItem",
   async ({ userId, productId }, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/shop/cart/${userId}/${productId}`,
-        getConfig()
+      const response = await apiClient.delete(
+        `/api/shop/cart/${userId}/${productId}`
       );
       return response.data;
     } catch (error) {
@@ -76,10 +63,9 @@ export const updateCartQuantity = createAsyncThunk(
   "cart/updateCartQuantity",
   async ({ userId, productId, type }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(
-        `${API_BASE_URL}/api/shop/cart/update-cart`,
-        { userId, productId, type },
-        getConfig()
+      const response = await apiClient.put(
+        "/api/shop/cart/update-cart",
+        { userId, productId, type }
       );
       return response.data;
     } catch (error) {

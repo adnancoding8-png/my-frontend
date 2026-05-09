@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
+import apiClient from "@/services/api-client";
 
 const initialState = {
   isLoading: false,
@@ -12,14 +11,9 @@ export const addNewProduct = createAsyncThunk(
   "products/addNewProduct",
   async (formData, { rejectWithValue }) => {
     try {
-      const result = await axios.post(
-        `${API_BASE_URL}/api/admin/products/add`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const result = await apiClient.post(
+        "/api/admin/products/add",
+        formData
       );
       return result.data;
     } catch (error) {
@@ -32,8 +26,8 @@ export const fetchAllProducts = createAsyncThunk(
   "products/fetchAllProducts",
   async (_, { rejectWithValue }) => {
     try {
-      const result = await axios.get(
-        `${API_BASE_URL}/api/admin/products/get`
+      const result = await apiClient.get(
+        "/api/admin/products/get"
       );
       return result.data;
     } catch (error) {
@@ -46,14 +40,9 @@ export const editProduct = createAsyncThunk(
   "products/editProduct",
   async ({ id, formData }, { rejectWithValue }) => {
     try {
-      const result = await axios.put(
-        `${API_BASE_URL}/api/admin/products/edit/${id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const result = await apiClient.put(
+        `/api/admin/products/edit/${id}`,
+        formData
       );
       return result.data;
     } catch (error) {
@@ -66,8 +55,8 @@ export const deleteProduct = createAsyncThunk(
   "products/deleteProduct",
   async (id, { rejectWithValue }) => {
     try {
-      const result = await axios.delete(
-        `${API_BASE_URL}/api/admin/products/delete/${id}`
+      const result = await apiClient.delete(
+        `/api/admin/products/delete/${id}`
       );
       return result.data;
     } catch (error) {

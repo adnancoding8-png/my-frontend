@@ -15,8 +15,38 @@ function ShoppingProductTile({
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Debug: Log product data to see the structure
-  console.log('Product data in tile:', product);
+  /**
+   * Helper function to get the correct image URL from product data
+   * Handles both string arrays ["url1", "url2"] and object arrays [{url: "..."}, ...]
+   * @returns {string} Image URL or fallback path
+   */
+  const getImageUrl = () => {
+    // Check if images array exists and has items
+    if (!product?.images || !Array.isArray(product.images) || product.images.length === 0) {
+      return '/no-image.png';
+    }
+
+    // Get the current image from the array
+    const currentImage = product.images[currentImageIndex];
+
+    // Handle undefined/null current image
+    if (!currentImage) {
+      return '/no-image.png';
+    }
+
+    // Handle string array format: ["url1", "url2"]
+    if (typeof currentImage === 'string') {
+      return currentImage;
+    }
+
+    // Handle object array format: [{url: "..."}, ...]
+    if (typeof currentImage === 'object' && currentImage.url) {
+      return currentImage.url;
+    }
+
+    // Fallback if format is unexpected
+    return '/no-image.png';
+  };
 
   const handleBuyNowClick = (e) => {
     e.stopPropagation();
@@ -89,13 +119,14 @@ function ShoppingProductTile({
       >
         <div className="relative overflow-hidden">
           <img
-            src={product?.images?.[currentImageIndex]?.url || product?.image || `https://via.placeholder.com/400x300/f0f0f0/666666?text=${encodeURIComponent(product?.title || 'Product Image')}`}
+            src={getImageUrl()}
             alt={product?.title}
             className="w-full h-40 xs:h-44 sm:h-48 md:h-52 lg:h-56 object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
-              console.log('Image failed to load:', e.target.src);
-              console.log('Product data:', product);
-              e.target.src = `https://via.placeholder.com/400x300/f0f0f0/666666?text=${encodeURIComponent(product?.title || 'No Image')}`;
+              // Prevent infinite loop by checking if error has already been handled
+              if (e.target.dataset.errorHandled === 'true') return;
+              e.target.dataset.errorHandled = 'true';
+              e.target.src = '/no-image.png';
             }}
           />
           

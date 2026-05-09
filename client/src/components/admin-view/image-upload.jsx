@@ -6,6 +6,7 @@ import { Skeleton } from "../ui/skeleton";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { useToast } from "../ui/use-toast";
+import { API_BASE_URL } from "@/config/api";
 
 function ProductImageUpload({
   imageFiles = [], // Add default empty array
@@ -32,7 +33,7 @@ function ProductImageUpload({
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/api/admin/products/upload-image",
+        `${API_BASE_URL}/api/admin/products/upload-image`,
         formData,
         {
           headers: {

@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
+import apiClient from "@/services/api-client";
 
 const initialState = {
   wishlistItems: [],
@@ -8,23 +7,13 @@ const initialState = {
   error: null,
 };
 
-// Configure axios defaults
-const getConfig = () => ({
-  withCredentials: true,
-  headers: {
-    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-    "Pragma": "no-cache"
-  }
-});
-
 export const addToWishlist = createAsyncThunk(
   "wishlist/addToWishlist",
   async ({ userId, productId }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/shop/wishlist/add`,
-        { userId, productId },
-        getConfig()
+      const response = await apiClient.post(
+        "/api/shop/wishlist/add",
+        { userId, productId }
       );
       return response.data;
     } catch (error) {
@@ -40,9 +29,8 @@ export const fetchWishlistItems = createAsyncThunk(
   "wishlist/fetchWishlistItems",
   async (userId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/shop/wishlist/get/${userId}`,
-        getConfig()
+      const response = await apiClient.get(
+        `/api/shop/wishlist/get/${userId}`
       );
       return response.data;
     } catch (error) {
@@ -58,9 +46,8 @@ export const removeFromWishlist = createAsyncThunk(
   "wishlist/removeFromWishlist",
   async ({ userId, productId }, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/shop/wishlist/${userId}/${productId}`,
-        getConfig()
+      const response = await apiClient.delete(
+        `/api/shop/wishlist/${userId}/${productId}`
       );
       return response.data;
     } catch (error) {

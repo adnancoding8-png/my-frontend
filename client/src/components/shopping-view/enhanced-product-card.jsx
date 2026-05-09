@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { addToCart, fetchCartItems } from '@/store/shop/cart-slice';
 import { addToWishlist, fetchWishlistItems } from '@/store/shop/wishlist-slice';
 import { getSessionId } from '@/utils/session';
+import { ShareIcon, ChevronLeftIcon, ChevronRightIcon, Star as StarIcon, Heart as HeartIcon, ShoppingCart as ShoppingCartIcon } from 'lucide-react';
 
 const EnhancedProductCard = ({ product, onAuthRequired }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -18,6 +19,39 @@ const EnhancedProductCard = ({ product, onAuthRequired }) => {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { wishlistItems } = useSelector((state) => state.shopWishlist);
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+
+  /**
+   * Helper function to get the correct image URL from product data
+   * Handles both string arrays ["url1", "url2"] and object arrays [{url: "..."}, ...]
+   * @returns {string} Image URL or fallback path
+   */
+  const getImageUrl = () => {
+    // Check if images array exists and has items
+    if (!product?.images || !Array.isArray(product.images) || product.images.length === 0) {
+      return '/no-image.png';
+    }
+
+    // Get the current image from the array
+    const currentImage = product.images[currentImageIndex];
+
+    // Handle undefined/null current image
+    if (!currentImage) {
+      return '/no-image.png';
+    }
+
+    // Handle string array format: ["url1", "url2"]
+    if (typeof currentImage === 'string') {
+      return currentImage;
+    }
+
+    // Handle object array format: [{url: "..."}, ...]
+    if (typeof currentImage === 'object' && currentImage.url) {
+      return currentImage.url;
+    }
+
+    // Fallback if format is unexpected
+    return '/no-image.png';
+  };
 
   const handleImageNavigation = (direction) => {
     if (!product?.images?.length) return;
@@ -132,9 +166,15 @@ const EnhancedProductCard = ({ product, onAuthRequired }) => {
         <div className="relative">
           <div className="aspect-square bg-gray-50">
             <img
-              src={product?.images?.[currentImageIndex]?.url || '/placeholder-image.jpg'}
+              src={getImageUrl()}
               alt={product?.title}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => {
+                // Prevent infinite loop by checking if error has already been handled
+                if (e.target.dataset.errorHandled === 'true') return;
+                e.target.dataset.errorHandled = 'true';
+                e.target.src = '/no-image.png';
+              }}
             />
 
             {/* Share Button */}

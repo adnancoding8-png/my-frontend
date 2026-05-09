@@ -1,26 +1,16 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { API_BASE_URL } from "@/config/api";
+import apiClient from "@/services/api-client";
 
 const initialState = {
   isLoading: false,
   featureImageList: [],
 };
 
-const axiosConfig = {
-  withCredentials: true,
-  headers: {
-    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-    "Pragma": "no-cache"
-  }
-};
-
 export const getFeatureImages = createAsyncThunk(
   "/common/getFeatureImages",
   async () => {
-    const response = await axios.get(
-      `${API_BASE_URL}/api/common/features/get`,
-      axiosConfig
+    const response = await apiClient.get(
+      "/api/common/features/get"
     );
     return response.data;
   }
@@ -29,10 +19,9 @@ export const getFeatureImages = createAsyncThunk(
 export const addFeatureImage = createAsyncThunk(
   "/common/addFeatureImage",
   async (imageUrl) => {
-    const response = await axios.post(
-      `${API_BASE_URL}/api/common/features/add`,
-      { image: imageUrl },
-      axiosConfig
+    const response = await apiClient.post(
+      "/api/common/features/add",
+      { image: imageUrl }
     );
     return response.data;
   }
@@ -42,9 +31,8 @@ export const deleteFeatureImage = createAsyncThunk(
   "common/deleteFeatureImage",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(
-        `${API_BASE_URL}/api/common/features/delete/${id}`,
-        axiosConfig
+      const response = await apiClient.delete(
+        `/api/common/features/delete/${id}`
       );
       return { id, ...response.data };
     } catch (error) {

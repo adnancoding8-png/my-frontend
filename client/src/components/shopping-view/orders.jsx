@@ -16,9 +16,11 @@ import {
   getAllOrdersByUserId,
   getOrderDetails,
   resetOrderDetails,
+  clearError,
 } from "@/store/shop/order-slice";
 import { Badge } from "../ui/badge";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import ErrorAlert from "../common/error-alert";
 import "../../styles/order-highlighting.css";
 
 function ShoppingOrders({ highlightOrderId }) {
@@ -27,7 +29,7 @@ function ShoppingOrders({ highlightOrderId }) {
   const dialogContentRef = useRef(null);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { orderList, orderDetails } = useSelector((state) => state.shopOrder);
+  const { orderList, orderDetails, error } = useSelector((state) => state.shopOrder);
 
   function handleFetchOrderDetails(getId) {
     dispatch(getOrderDetails(getId));
@@ -88,6 +90,18 @@ function ShoppingOrders({ highlightOrderId }) {
           <CardTitle>Order History</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Error Alert */}
+          {error && (
+            <ErrorAlert 
+              error={error}
+              onDismiss={() => dispatch(clearError())}
+              onRetry={() => {
+                dispatch(getAllOrdersByUserId(user?.id));
+              }}
+              className="mb-4"
+            />
+          )}
+
           {orderList && orderList.length > 0 ? (
             <Table>
               <TableHeader>

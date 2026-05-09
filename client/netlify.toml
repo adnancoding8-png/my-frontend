@@ -1,0 +1,54 @@
+# Netlify Configuration File
+# This is an alternative to _redirects file with more configuration options
+
+[build]
+  # Build command for Vite
+  command = "npm run build"
+  
+  # Directory where Vite outputs the built files
+  publish = "dist"
+  
+  # Node version (optional but recommended)
+  # environment = { NODE_VERSION = "18" }
+
+# SPA Fallback - Redirect all routes to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  
+  # Don't apply this redirect to actual files that exist
+  # This allows images, CSS, JS files to load correctly
+  force = false
+
+# Optional: Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Cache control for static assets
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    # Don't cache the main HTML file
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Optional: Environment variables (if needed)
+# [build.environment]
+#   VITE_API_URL = "https://your-backend-api.com"
+
+# Optional: Functions configuration (if you use Netlify Functions)
+# [functions]
+#   directory = "netlify/functions"
